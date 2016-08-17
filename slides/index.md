@@ -1,164 +1,140 @@
-- title : FsReveal
-- description : Introduction to FsReveal
-- author : Karlkim Suwanmongkol
+- title : git : under the covers
+- description : A little insight into how git works
+- author : Daniel Bradley
 - theme : night
 - transition : default
 
 ***
 
-### What is FsReveal?
+## git : under the covers
 
-- Generates [reveal.js](http://lab.hakim.se/reveal-js/#/) presentation from [markdown](http://daringfireball.net/projects/markdown/)
-- Utilizes [FSharp.Formatting](https://github.com/tpetricek/FSharp.Formatting) for markdown parsing
-- Get it from [http://fsprojects.github.io/FsReveal/](http://fsprojects.github.io/FsReveal/)
+#### a little insight into how git works
 
-![FsReveal](images/logo.png)
+<small>disclaimer: any gross oversimplifications or omissions are completely deliberate to avoid getting side-tracked</small>
 
-***
-
-### Reveal.js
-
-- A framework for easily creating beautiful presentations using HTML.
-
-
-> **Atwood's Law**: any application that can be written in JavaScript, will eventually be written in JavaScript.
+' A little deeper
+' Mental models
+' Tips & tricks
 
 ***
 
-### FSharp.Formatting
+## Anatomy of a Repo
 
-- F# tools for generating documentation (Markdown processor and F# code formatter).
-- It parses markdown and F# script file and generates HTML or PDF.
-- Code syntax highlighting support.
-- It also evaluates your F# code and produce tooltips.
+![diagram of anatomy](/images/anatomy.png)
+
+' 1. Working copy/git repository
+' 2. objects - commits, file trees, file snapshots (blobs) ...
+' 3. refs - Branches (heads) & tags
+' 4. HEAD - the parent of the next commit you create
+' 6. index - (stage) shadow copy of the current working copy according to git
 
 ***
 
-### Syntax Highlighting
+# Part 1
 
-#### F# (with tooltips)
+### Creating a repo
 
-    let a = 5
-    let factorial x = [1..x] |> List.reduce (*)
-    let c = factorial a
+![the hard way](/images/the-hard-way.gif)
+
+### ... the hard way
+
+' porclain vs plumbing
 
 ---
 
-#### C#
+### What's the point of refs?
+
+How we find commits. Don't want to search every object
+
+- heads: the names of our branches - move around
+- tags: the names of our tags - stay in one place
+- HEAD: where we're going to commit to
+
+---
+
+## The Graph
+
+![git graph](/images/graph.png)
+
+***
+# Part 2
+
+## git gymnastics
+
+![gymnastics](/images/gymnastics.gif)
+
+' Manipulating the graph
+' Less low level
+' Skipping merging
+
+***
+
+## Moving branches
+
+![reset graph](/images/graph-reset.png)
+
+---
+
+## git reset
+
+Changes a branch to point to a specific commit
+
+| type    | branch | index | working dir |
+|---------|--------|-------|-------------------|
+| soft    | ✓      | ✗     | ✗                 |
+| mixed   | ✓      | ✓     | ✗                 |
+| hard    | ✓      | ✓     | ✓                 |
+
+---
+
+## git reset
+
+1. Branch: point /.git/refs/heads/[branch] to new commit.
+2. Index: Copy tree from commit to the index.
+3. Working dir: Change content to match version in the index.
+
+' Deleting all changes (same commit, --hard)
+' Squashing commits on a branch (--soft)
+
+***
+
+## 'Moving' commits
+
+### git cherry-pick
+
+![cherry-pick](/images/graph-cherry-pick.png)
+
+---
+
+## git cherry-pick
+
+- Parent changes ⇒ we change the hash.
+- Old object not changed
+
+---
+
+_What if you've got 15 commits to move from one branch to another?_
+
+***
+
+## git rebase
 
     [lang=cs]
-    using System;
-
-    class Program
-    {
-        static void Main()
-        {
-            Console.WriteLine("Hello, world!");
-        }
-    }
-
----
-
-#### JavaScript
-
-    [lang=js]
-    function copyWithEvaluation(iElem, elem) {
-        return function (obj) {
-            var newObj = {};
-            for (var p in obj) {
-                var v = obj[p];
-                if (typeof v === "function") {
-                    v = v(iElem, elem);
-                }
-                newObj[p] = v;
-            }
-            if (!newObj.exactTiming) {
-                newObj.delay += exports._libraryDelay;
-            }
-            return newObj;
-        };
-    }
-
-
----
-
-#### Haskell
- 
-    [lang=haskell]
-    recur_count k = 1 : 1 : 
-        zipWith recurAdd (recur_count k) (tail (recur_count k))
-            where recurAdd x y = k * x + y
-
-    main = do
-      argv <- getArgs
-      inputFile <- openFile (head argv) ReadMode
-      line <- hGetLine inputFile
-      let [n,k] = map read (words line)
-      printf "%d\n" ((recur_count k) !! (n-1))
-
-*code from [NashFP/rosalind](https://github.com/NashFP/rosalind/blob/master/mark_wutka%2Bhaskell/FIB/fib_ziplist.hs)*
-
----
-
-### SQL
-
-    [lang=sql]
-    select *
-    from
-    (select 1 as Id union all select 2 union all select 3) as X
-    where Id in (@Ids1, @Ids2, @Ids3)
-
-*sql from [Dapper](https://code.google.com/p/dapper-dot-net/)*
-
----
-
-### Paket
-
-    [lang=paket]
-    source https://nuget.org/api/v2
-
-    nuget Castle.Windsor-log4net >= 3.2
-    nuget NUnit
+    for each commit in branch-a
+      cherry-pick commit onto branch-b
     
-    github forki/FsUnit FsUnit.fs
-      
+    reset branch-a to new commit
+
 ---
 
-### C/AL
+## git rebase --interactive
 
-    [lang=cal]
-    PROCEDURE FizzBuzz(n : Integer) r_Text : Text[1024];
-    VAR
-      l_Text : Text[1024];
-    BEGIN
-      r_Text := '';
-      l_Text := FORMAT(n);
-
-      IF (n MOD 3 = 0) OR (STRPOS(l_Text,'3') > 0) THEN
-        r_Text := 'Fizz';
-      IF (n MOD 5 = 0) OR (STRPOS(l_Text,'5') > 0) THEN
-        r_Text := r_Text + 'Buzz';
-      IF r_Text = '' THEN
-        r_Text := l_Text;
-    END;
+![oh goodie](/images/oh-goodie.gif)
 
 ***
 
-**Bayes' Rule in LaTeX**
+# That's it
 
-$ \Pr(A|B)=\frac{\Pr(B|A)\Pr(A)}{\Pr(B|A)\Pr(A)+\Pr(B|\neg A)\Pr(\neg A)} $
+Hope that was enlightening in some way!
 
-***
-
-### The Reality of a Developer's Life 
-
-**When I show my boss that I've fixed a bug:**
-  
-![When I show my boss that I've fixed a bug](http://www.topito.com/wp-content/uploads/2013/01/code-07.gif)
-  
-**When your regular expression returns what you expect:**
-  
-![When your regular expression returns what you expect](http://www.topito.com/wp-content/uploads/2013/01/code-03.gif)
-  
-*from [The Reality of a Developer's Life - in GIFs, Of Course](http://server.dzone.com/articles/reality-developers-life-gifs)*
-
+![I know kung fu](/images/i-know-kung-fu.gif)
