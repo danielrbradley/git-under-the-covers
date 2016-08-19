@@ -20,7 +20,7 @@
 
 ## Anatomy of a Repo
 
-![diagram of anatomy](/images/anatomy.png)
+![diagram of anatomy](images/anatomy.png)
 
 ' 1. Working copy/git repository
 ' 2. objects - commits, file trees, file snapshots (blobs) ...
@@ -34,7 +34,7 @@
 
 ### Creating a repo
 
-![the hard way](/images/the-hard-way.gif)
+![the hard way](images/the-hard-way.gif)
 
 ### ... the hard way
 
@@ -54,14 +54,14 @@ How we find commits. Don't want to search every object
 
 ## The Graph
 
-![git graph](/images/graph.png)
+![git graph](images/graph.png)
 
 ***
 # Part 2
 
 ## git gymnastics
 
-![gymnastics](/images/gymnastics.gif)
+![gymnastics](images/gymnastics.gif)
 
 ' Manipulating the graph
 ' Less low level
@@ -71,7 +71,7 @@ How we find commits. Don't want to search every object
 
 ## Moving branches
 
-![reset graph](/images/graph-reset.png)
+![reset graph](images/graph-reset.png)
 
 ---
 
@@ -102,7 +102,7 @@ Changes a branch to point to a specific commit
 
 ### git cherry-pick
 
-![cherry-pick](/images/graph-cherry-pick.png)
+![cherry-pick](images/graph-cherry-pick.png)
 
 ---
 
@@ -129,7 +129,7 @@ _What if you've got 15 commits to move from one branch to another?_
 
 ## git rebase --interactive
 
-![oh goodie](/images/oh-goodie.gif)
+![oh goodie](images/oh-goodie.gif)
 
 ***
 
@@ -137,4 +137,4 @@ _What if you've got 15 commits to move from one branch to another?_
 
 Hope that was enlightening in some way!
 
-![I know kung fu](/images/i-know-kung-fu.gif)
+![I know kung fu](images/i-know-kung-fu.gif)
