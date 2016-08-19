@@ -1,0 +1,239 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>git : under the covers</title>
+    <meta name="description" content="A little insight into how git works">
+    <meta name="author" content="Daniel Bradley">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="//code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="//code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/night.css" id="theme">
+    <link type="text/css" rel="stylesheet" href="fsharp.formatting/styles/style.css" />
+    <link type="text/css" rel="stylesheet" href="fsharp.formatting/styles/deedle.css" />
+    <link type="text/css" rel="stylesheet" href="css/custom.css" />
+    <script src="fsharp.formatting/styles/tips.js" type="text/javascript"></script>
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <link rel="stylesheet" href="css/fsreveal.css">
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+			if( window.location.search.match( /print-pdf/gi ) ) {
+				var link = document.createElement( 'link' );
+				link.rel = 'stylesheet';
+				link.type = 'text/css';
+				link.href = 'css/print/pdf.css';
+				document.getElementsByTagName( 'head' )[0].appendChild( link );
+			}
+    </script>
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+    <script language="javascript" type="text/javascript">
+        function init()
+        {
+            websocket = new WebSocket("ws://"+window.location.host+"/websocket");
+            websocket.onmessage = function(evt) { location.reload(); };
+        }
+        window.addEventListener("load", init, false);
+    </script>
+</head>
+<body>
+    <div class="reveal">
+        
+        <!-- Any section element inside of this container is displayed as a slide -->
+        <div class="slides">
+            <section >
+<h2>git : under the covers</h2>
+<h4>a little insight into how git works</h4>
+<small>disclaimer: any gross oversimplifications or omissions are completely deliberate to avoid getting side-tracked</small>
+<aside class="notes">
+A little deeper<br/>
+Mental models<br/>
+Tips & tricks<br/>
+</aside>
+</section>
+<section >
+<h2>Anatomy of a Repo</h2>
+<p><img src="/images/anatomy.png" alt="diagram of anatomy" /></p>
+<aside class="notes">
+1. Working copy/git repository<br/>
+2. objects - commits, file trees, file snapshots (blobs) ...<br/>
+3. refs - Branches (heads) & tags<br/>
+4. HEAD - the parent of the next commit you create<br/>
+6. index - (stage) shadow copy of the current working copy according to git<br/>
+</aside>
+</section>
+<section >
+<section >
+<h1>Part 1</h1>
+<h3>Creating a repo</h3>
+<p><img src="/images/the-hard-way.gif" alt="the hard way" /></p>
+<h3>... the hard way</h3>
+<aside class="notes">
+porclain vs plumbing<br/>
+</aside>
+</section>
+<section >
+<h3>What's the point of refs?</h3>
+<p>How we find commits. Don't want to search every object</p>
+<ul>
+<li>heads: the names of our branches - move around</li>
+<li>tags: the names of our tags - stay in one place</li>
+<li>HEAD: where we're going to commit to</li>
+</ul>
+</section>
+<section >
+<h2>The Graph</h2>
+<p><img src="/images/graph.png" alt="git graph" /></p>
+</section>
+</section>
+<section >
+<h1>Part 2</h1>
+<h2>git gymnastics</h2>
+<p><img src="/images/gymnastics.gif" alt="gymnastics" /></p>
+<aside class="notes">
+Manipulating the graph<br/>
+Less low level<br/>
+Skipping merging<br/>
+</aside>
+</section>
+<section >
+<section >
+<h2>Moving branches</h2>
+<p><img src="/images/graph-reset.png" alt="reset graph" /></p>
+</section>
+<section >
+<h2>git reset</h2>
+<p>Changes a branch to point to a specific commit</p>
+<table>
+<thead>
+<tr class="header">
+<th><p>type</p></th>
+<th><p>branch</p></th>
+<th><p>index</p></th>
+<th><p>working dir</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><p>soft</p></td>
+<td><p>✓</p></td>
+<td><p>✗</p></td>
+<td><p>✗</p></td>
+</tr>
+<tr class="even">
+<td><p>mixed</p></td>
+<td><p>✓</p></td>
+<td><p>✓</p></td>
+<td><p>✗</p></td>
+</tr>
+<tr class="odd">
+<td><p>hard</p></td>
+<td><p>✓</p></td>
+<td><p>✓</p></td>
+<td><p>✓</p></td>
+</tr>
+</tbody>
+</table>
+
+</section>
+<section >
+<h2>git reset</h2>
+<ol>
+<li>Branch: point /.git/refs/heads/[branch] to new commit.</li>
+<li>Index: Copy tree from commit to the index.</li>
+<li>Working dir: Change content to match version in the index.</li>
+</ol>
+<aside class="notes">
+Deleting all changes (same commit, --hard)<br/>
+Squashing commits on a branch (--soft)<br/>
+</aside>
+</section>
+</section>
+<section >
+<section >
+<h2>'Moving' commits</h2>
+<h3>git cherry-pick</h3>
+<p><img src="/images/graph-cherry-pick.png" alt="cherry-pick" /></p>
+</section>
+<section >
+<h2>git cherry-pick</h2>
+<ul>
+<li>Parent changes ⇒ we change the hash.</li>
+<li>Old object not changed</li>
+</ul>
+</section>
+<section >
+<p><em>What if you've got 15 commits to move from one branch to another?</em></p>
+</section>
+</section>
+<section >
+<section >
+<h2>git rebase</h2>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="cs"><span class="k">for</span> each commit <span class="k">in</span> branch-a
+  cherry-pick commit onto branch-b
+
+reset branch-a to <span class="k">new</span> commit
+</code></pre></td></tr></table>
+</section>
+<section >
+<h2>git rebase --interactive</h2>
+<p><img src="/images/oh-goodie.gif" alt="oh goodie" /></p>
+</section>
+</section>
+<section >
+<h1>That's it</h1>
+<p>Hope that was enlightening in some way!</p>
+<p><img src="/images/i-know-kung-fu.gif" alt="I know kung fu" /></p>
+</section>
+
+
+        </div>
+    </div>
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+        // Add the nohighlight class and data-noescape attribute to code elements that have already been formatted by FSharp.Formatting
+        $('pre.highlighted code').addClass('nohighlight').attr('data-noescape', '');
+
+        // Full list of configuration options available here:
+        // https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+            center: true,
+
+            transition: 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+            // Parallax scrolling
+            // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+            // parallaxBackgroundSize: '2100px 900px',
+
+            // Optional libraries used to extend on reveal.js
+            dependencies: [
+                { src: 'lib/js/classList.js', condition: function () { return !document.body.classList; } },
+                { src: 'plugin/markdown/marked.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+                { src: 'plugin/markdown/markdown.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+                { src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } },
+                { src: 'plugin/zoom-js/zoom.js', async: true, condition: function () { return !!document.body.classList; } },
+                { src: 'plugin/notes/notes.js', async: true, condition: function () { return !!document.body.classList; } }
+            ]
+        });
+
+    </script>
+</body>
+</html>
+

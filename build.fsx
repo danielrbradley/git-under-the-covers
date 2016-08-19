@@ -30,7 +30,7 @@ open Suave.WebSocket
 open Suave.Utils
 open Suave.Files
 
-let outDir = __SOURCE_DIRECTORY__ </> "output"
+let outDir = __SOURCE_DIRECTORY__ </> "docs"
 let slidesDir = __SOURCE_DIRECTORY__ </> "slides"
 
 Target "Clean" (fun _ ->
